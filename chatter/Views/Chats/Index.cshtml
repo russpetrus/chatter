@@ -10,7 +10,11 @@
     @Html.ActionLink("Create New", "Create")
 </p>
 
-<div id="response"></div>
+<div id="response">
+    <ul id="list">
+
+    </ul>
+</div>
 <button id="getChats" class="btn btn-primary">Get Chats</button>
 
 @section Scripts {
@@ -25,11 +29,10 @@
             $.get("@Url.Action("TestJson","Chats")", function (serverResponse) {
                 var jsonTest = JSON.parse(serverResponse);
                 console.log(jsonTest);
+
                 $("#response").text(jsonTest.firstName);
             });
         });
-
-
     </script>
 }
 
