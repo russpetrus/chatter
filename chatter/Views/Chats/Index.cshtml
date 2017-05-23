@@ -1,41 +1,85 @@
 ﻿@model IEnumerable<chatter.Models.Chat>
 
 @{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Chats";
 }
 
-<h2>Index</h2>
+<h2>Converse</h2>
 
-<p>
-    @Html.ActionLink("Create New", "Create")
-</p>
+<div>
+    
+    <textarea maxlength="140"  rows="3" cols="40" id="message"></textarea>
+   <br />
+   
+    <button id="postChat"  class="btn btn-primary">Chat</button>
+</div>
 
-<div id="response">
-    <ul id="list">
-
-    </ul>
+<div id="allChats" class="chat-list">
+    
 </div>
 <button id="getChats" class="btn btn-primary">Get Chats</button>
 
 @section Scripts {
     <script>
-        //AJAX request using jQuery as a helper
-        //Notice this combines Razor syntax (@Url.Action()) in order to
-        //have the compiler figure out the exact path of the controller,
-        //alongside of jQuery.
+        $(document).ready(function () {
 
-        $('#getChats').click(function () {
-
-            $.get("@Url.Action("TestJson","Chats")", function (serverResponse) {
-                var jsonTest = JSON.parse(serverResponse);
-                console.log(jsonTest);
-
-                $("#response").text(jsonTest.firstName);
+            //send chat to controller on click
+            $('#postChat').click(function() {
+                //assign variable to hold  message it can be sent to the controller usering the post method
+                var message = $('#message').val()
+                //use post method to send message to controller
+                $.post("@Url.Action("PostChats", "Chats")", { "Message": message })
+                //clear the input field
+                $('#message').val("");
+                //display all chats
+                displayChats();
             });
+
+
+            //update the chats area when the get chats button is clicked
+            $('#getChats').click(displayChats);
+
+            //Display chats on page load and then refresh every 10 seconds
+            window.onload = function () {
+                displayChats(); //loads chats on page load -- not a project requirement, but seems to make sense
+                setInterval(displayChats, 10000); //runs displayChats function every 10 seconds
+            }
+
+            //display chats function that will be reused several times in script. 
+            function displayChats() {
+                $.get("@Url.Action("TestJson","Chats")", function (serverResponse) {
+                    var jsonTest = JSON.parse(serverResponse);
+                    console.log(jsonTest);
+
+                    //grab area to append to 
+                    var chatsList = $("#allChats");
+
+                    //Reset the chats area by using the empty method -- no duplicates
+                    chatsList.empty();
+                    $.each(jsonTest, function (inx, val) {
+                        //create html elements to hold the values
+                        var chatContainer = $("<div class='chat-container'>");
+                        var user = $("<p class='username'>");
+                        var message = $("<p>");
+
+                        // assign text of user and message for each chat to an html element
+                        user.text(val.UserName);
+                        message.text(val.Message);
+
+                        //append user and message into the chatContainer
+                        chatContainer.append(user);
+                        chatContainer.append(message);
+
+                        //append chatContainer to #chatsList                       
+                        chatsList.append(chatContainer);  
+
+                    });
+                    
+                })
+            }
         });
     </script>
 }
-
 
 
 

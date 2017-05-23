@@ -8,20 +8,29 @@ using System.Web;
 using System.Web.Mvc;
 using chatter.Models;
 using Newtonsoft.Json;
+using Microsoft.AspNet.Identity;
 
 namespace chatter.Controllers
 {
     public class ChatsController : Controller
     {
+
+       
         private ChatterEntities db = new ChatterEntities();
 
         // GET: Chats
+
+        
+       [RequireHttps]
+       [Authorize]
         public ActionResult Index()
         {
+            
             var chats = db.Chats.Include(c => c.AspNetUser);
             return View(chats.ToList());
         }
 
+        
         public JsonResult TestJson()
         {
             //This is my original SQL query
@@ -71,6 +80,8 @@ namespace chatter.Controllers
         // POST: Chats/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create([Bind(Include = "ID,UserId,Message,TimeStamp")] Chat chat)
@@ -85,6 +96,29 @@ namespace chatter.Controllers
             ViewBag.UserId = new SelectList(db.AspNetUsers, "Id", "Email", chat.UserId);
             return View(chat);
         }
+
+        public JsonResult PostChats([Bind(Include = "Message")] Chat chat)
+        {
+
+            //PostChats method knows to expect the message from chats when chats view .post method sends the information
+
+            //Timestamp is set to DateTime.Now using the control instead of on the chats form in chats view
+            chat.TimeStamp = DateTime.Now;
+            //Now, since we have a foreign key join on the aspnetuser table, the 2 models in EF (AspNetUser and Chat) reference each other
+            // Because of this, we need to get a complete user object, not just the userID 
+            string currentUserId = User.Identity.GetUserId();
+            chat.AspNetUser = db.AspNetUsers.FirstOrDefault(x => x.Id == currentUserId);
+
+
+            if (ModelState.IsValid)
+            {
+                db.Chats.Add(chat);
+                db.SaveChanges();
+            }
+            return new JsonResult() { Data = JsonConvert.SerializeObject(chat.ID), JsonRequestBehavior = JsonRequestBehavior.AllowGet };
+        }
+
+
 
         // GET: Chats/Edit/5
         public ActionResult Edit(int? id)
