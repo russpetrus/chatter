@@ -11,13 +11,14 @@
     <textarea maxlength="140"  rows="3" cols="40" id="message"></textarea>
    <br />
    
-    <button id="postChat"  class="btn btn-primary">Chat</button>
+    <button id="postChat" class="btn btn-primary">Chat</button>
+    
+    <button id="getChats" class="btn btn-primary">Get Chats</button>
 </div>
 
 <div id="allChats" class="chat-list">
-    
 </div>
-<button id="getChats" class="btn btn-primary">Get Chats</button>
+
 
 @section Scripts {
     <script>
@@ -26,7 +27,7 @@
             //send chat to controller on click
             $('#postChat').click(function() {
                 //assign variable to hold  message it can be sent to the controller usering the post method
-                var message = $('#message').val()
+                var message = $('#message').val();
                 //use post method to send message to controller
                 $.post("@Url.Action("PostChats", "Chats")", { "Message": message })
                 //clear the input field
